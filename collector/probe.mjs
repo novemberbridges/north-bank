@@ -2,7 +2,9 @@
 const K=process.env.GUARDIAN_KEY||'test', UA={'User-Agent':'NorthBankReader/1.0 (personal news reader)'};
 const hit=async(u,h={})=>{try{const r=await fetch(u,{headers:{...UA,...h},redirect:'follow',signal:AbortSignal.timeout(20000)});const t=await r.text();return{s:r.status,t}}catch(e){return{s:'ERR '+e.message,t:''}}};
 const c=await hit(`https://content.guardianapis.com/search?tag=football/arsenal,-football/womensfootball&page-size=8&show-fields=shortUrl,commentable,commentCloseDate&api-key=${K}`);
-const rs=JSON.parse(c.t).response.results;
+console.log('capi',c.s,c.t.slice(0,200));
+let rs=JSON.parse(c.t).response?.results;
+if(!rs){const rss=await hit('https://www.theguardian.com/football/arsenal/rss');const links=[...rss.t.matchAll(/<item>[\s\S]*?<link>([^<]+)/g)].slice(0,3).map(m=>m[1]);rs=[];for(const l of links){const pg=await hit(l);const m=/"shortUrlId":"(\/p\/[a-z0-9]+)"/i.exec(pg.t);console.log(l,pg.s,m?.[1],(pg.t.match(/"(?:isCommentable|commentable)":[a-z]+/gi)||[]).slice(0,2));if(m)rs.push({webUrl:l,fields:{shortUrl:'https://www.theguardian.com'+m[1],commentable:'true'}});}}
 const counts=rs.map(r=>/\/p\/[a-z0-9]+/i.exec(r.fields.shortUrl)?.[0]).join(',');
 const cc=await hit(`https://discussion.theguardian.com/discussion-api/getCommentCounts?short-urls=${counts}`);
 console.log('counts',cc.s,cc.t.slice(0,300));
