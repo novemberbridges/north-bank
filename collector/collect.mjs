@@ -12,6 +12,7 @@ const SITE_URL = (process.env.SITE_URL || '').replace(/\/$/, '');
 const OUT = process.env.OUT_DIR || 'site/data';
 const UA = 'NorthBankReader/1.0 (personal news reader)';
 const MAX_PER_SOURCE = 40;
+const PAGE_VERSION = 2;
 const COMMENT_REFRESH_DAYS = 4;
 const CONCURRENCY = 4;
 const MAP = process.env.UPSTREAM_MAP ? JSON.parse(process.env.UPSTREAM_MAP) : null;
@@ -161,8 +162,9 @@ async function guardianFeed(status) {
     status.feedsOk = 1;
     return list;
   } catch (e) {
-    status.problems = [`Guardian API: ${e.message}; used RSS`];
-    return readFeeds([{ url: 'https://www.theguardian.com/football/arsenal/rss' }], status);
+    const rss = await readFeeds([{ url: 'https://www.theguardian.com/football/arsenal/rss' }], status);
+    status.problems.push(`Guardian API: ${e.message}, using RSS`);
+    return rss.map(i => ({ ...i, content: '' }));
   }
 }
 const SOURCES = {
@@ -178,7 +180,7 @@ const SOURCES = {
 };
 
 /* ---------- Article text ---------- */
-function pageBlocks(html) {
+export function pageBlocks(html) {
   // Prefer structured article text when the page offers it.
   for (const m of html.matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
     try {
@@ -202,7 +204,11 @@ async function readArticle(it) {
   }
   if (it.content) return htmlToBlocks(it.content);
   const { body } = await get(it.url);
-  if (it.source === 'guardian' && !it.shortPath) it.shortPath = (/"shortUrlId":"(\/p\/[a-z0-9]+)"/i.exec(body) || [])[1] || null;
+  if (it.source === 'guardian') {
+    it.shortPath ||= (/"shortUrlId":"(\/p\/[a-z0-9]+)"/i.exec(body) || [])[1] || null;
+    const open = /"commentable":(true|false)/i.exec(body);
+    if (open) it.commentable = open[1] === 'true';
+  }
   return pageBlocks(body);
 }
 
@@ -222,7 +228,14 @@ async function guardianComments(it) {
   let pages = 1, total = 0;
   const map = c => ({ id: c.id, author: oneLine(c.userProfile?.displayName) || 'Reader', date: c.isoDateTime || c.date, votes: c.numRecommends || 0, blocks: htmlToBlocks(c.body).filter(b => b.t !== 'img'), replies: (c.responses || []).map(map), more: Math.max(0, (c.numResponses || 0) - (c.responses || []).length) });
   for (let page = 1; page <= pages && page <= 5; page++) {
-    const { body } = await get(`https://discussion.theguardian.com/discussion-api/discussion/${it.shortPath}?api-key=dotcom-rendering&orderBy=newest&pageSize=100&page=${page}&displayThreads=true&maxResponses=20`, { type: 'json' });
+    let body;
+    try {
+      ({ body } = await get(`https://discussion.theguardian.com/discussion-api/discussion/${it.shortPath}?api-key=dotcom-rendering&orderBy=newest&pageSize=100&page=${page}&displayThreads=true&maxResponses=20`, { type: 'json' }));
+    } catch (e) {
+      // The Guardian answers 404 for articles that never opened comments.
+      if (e.status === 404 && page === 1) return { comments: [], total: 0, state: 'closed' };
+      throw e;
+    }
     pages = body.pages || 1;
     total = body.discussion?.commentCount ?? total;
     all.push(...(body.discussion?.comments || []).map(map));
@@ -317,6 +330,7 @@ async function main() {
     statuses[key] = status;
     const got = prep(await src.load(status), key);
     status.count = got.length;
+    status.withComments = 0;
     status.ok = status.feedsOk > 0;
     if (!got.length && !status.ok) {
       // A failed source keeps its previous stories rather than vanishing.
@@ -333,8 +347,11 @@ async function main() {
     const prevFile = old ? await previous(`a/${it.id}.bin`) : null;
     let saved = null;
     if (prevFile) { try { saved = await open(prevFile); } catch { /* collect again */ } }
+    if (saved?.v !== PAGE_VERSION) saved = null;
+    if (saved?.shortPath && !it.shortPath) it.shortPath = saved.shortPath;
+    if (saved?.commentable != null && it.commentable == null) it.commentable = saved.commentable;
     const inApp = SOURCES[it.source].inApp;
-    const page = { id: it.id, blocks: saved?.blocks || [], comments: saved?.comments || [], commentTotal: saved?.commentTotal ?? (it.comments || 0), commentState: saved?.commentState || (inApp && it.source !== 'bbc' ? 'none' : 'offsite') };
+    const page = { v: PAGE_VERSION, id: it.id, blocks: saved?.blocks || [], comments: saved?.comments || [], commentTotal: saved?.commentTotal ?? (it.comments || 0), commentState: saved?.commentState || (inApp && it.source !== 'bbc' ? 'none' : 'offsite') };
     const fresh = now - new Date(it.date || 0).getTime() < COMMENT_REFRESH_DAYS * 864e5;
     if (it._keep) { counters.reused++; }
     else {
@@ -352,6 +369,10 @@ async function main() {
       }
     }
     if (it.comments == null && page.commentTotal) it.comments = page.commentTotal;
+    if (page.comments.length) statuses[it.source].withComments++;
+    statuses[it.source].texts = (statuses[it.source].texts || 0) + (page.blocks.length ? 1 : 0);
+    if (it.shortPath) page.shortPath = it.shortPath;
+    if (it.commentable != null) page.commentable = it.commentable;
     it.hasText = page.blocks.filter(b => b.t !== 'img').length >= 2;
     await writeFile(`${OUT}/a/${it.id}.bin`, await seal(page));
     delete it.content; delete it.cats; delete it._keep;
@@ -360,8 +381,8 @@ async function main() {
   items.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const feed = { updated: new Date().toISOString(), statuses, items };
   await writeFile(`${OUT}/feed.bin`, await seal(feed));
-  await writeFile(`${OUT}/status.json`, JSON.stringify({ updated: feed.updated, counters, sources: Object.fromEntries(Object.entries(statuses).map(([k, s]) => [k, { ok: s.ok, count: s.count, problems: s.problems }])) }, null, 1));
-  console.log(`Total ${items.length} stories.`, counters);
+  await writeFile(`${OUT}/status.json`, JSON.stringify({ updated: feed.updated, counters, sources: Object.fromEntries(Object.entries(statuses).map(([k, s]) => [k, { ok: s.ok, count: s.count, texts: s.texts || 0, withComments: s.withComments || 0, problems: s.problems }])) }, null, 1));
+  console.log(`Total ${items.length} stories.`, counters, JSON.stringify(Object.fromEntries(Object.entries(statuses).map(([k, s]) => [k, [s.count, s.texts || 0, s.withComments || 0, s.problems]]))));
   // Only fail the run when nothing could be collected, so the last good site stays live.
   if (!items.length) { console.error('No stories collected.'); process.exit(1); }
 }
