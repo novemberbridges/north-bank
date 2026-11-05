@@ -12,7 +12,7 @@ const SITE_URL = (process.env.SITE_URL || '').replace(/\/$/, '');
 const OUT = process.env.OUT_DIR || 'site/data';
 const UA = 'NorthBankReader/1.0 (personal news reader)';
 const MAX_PER_SOURCE = 40;
-const PAGE_VERSION = 2;
+const PAGE_VERSION = 3;
 const COMMENT_REFRESH_DAYS = 4;
 const CONCURRENCY = 4;
 const MAP = process.env.UPSTREAM_MAP ? JSON.parse(process.env.UPSTREAM_MAP) : null;
@@ -195,7 +195,10 @@ export function pageBlocks(html) {
   const cut = scope.search(/id=["'](?:comments|wpdcom|respond)["']|class=["'][^"']*wpd-(?:thread|comment)/i);
   if (cut > 0) scope = scope.slice(0, cut);
   const area = /<article\b[\s\S]*?(?:<\/article>|$)/i.exec(scope)?.[0] || /<main\b[\s\S]*?(?:<\/main>|$)/i.exec(scope)?.[0] || scope;
-  return htmlToBlocks(area.slice(0, 400000)).filter(b => b.t === 'img' || b.text.length > 1);
+  const blocks = htmlToBlocks(area.slice(0, 400000)).filter(b => b.t === 'img' || b.text.length > 1);
+  // Page furniture: stop at the "related" sections and drop short topic links and date lines.
+  const end = blocks.findIndex(b => /^(related topics|more on this story|top stories|elsewhere on the bbc|most read|explore more on these topics|more from|read more)\b/i.test(b.text || ''));
+  return (end > 0 ? blocks.slice(0, end) : blocks).filter(b => !(b.t === 'li' && b.text.length < 60) && !/^published\s*\d/i.test(b.text || ''));
 }
 async function readArticle(it) {
   if (it.source === 'guardian' && it.apiPath) {
