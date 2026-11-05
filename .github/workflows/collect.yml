@@ -32,7 +32,7 @@ jobs:
       - name: Probe
         continue-on-error: true
         env:
-          GUARDIAN_KEY: ${{ secrets.GUARDIAN_KEY }}
+          READER_PASSCODE: probe
         run: node collector/probe.mjs
       - name: Collect
         env:
