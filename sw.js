@@ -1,5 +1,5 @@
 /* Keeps the app and articles you've opened available with no internet. The article list always tries the network first. */
-const VERSION='north-bank-1', DATA='north-bank-data';
+const VERSION='north-bank-2', DATA='north-bank-data';
 const FILES=["./","./index.html","./manifest.webmanifest","./icons/apple-touch-icon.png","./icons/icon-192.png","./icons/icon-512.png","./fonts/source-serif-4-latin-400-normal.woff2","./fonts/source-serif-4-latin-400-italic.woff2","./fonts/source-serif-4-latin-600-normal.woff2","./fonts/source-serif-4-latin-700-normal.woff2","./fonts/source-sans-3-latin-400-normal.woff2","./fonts/source-sans-3-latin-600-normal.woff2","./fonts/source-sans-3-latin-700-normal.woff2"];
 self.addEventListener('install',e=>e.waitUntil(caches.open(VERSION).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n!==VERSION&&n!==DATA).map(n=>caches.delete(n)))).then(()=>self.clients.claim())));
