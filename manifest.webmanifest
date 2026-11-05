@@ -1,0 +1,2 @@
+{"name":"North Bank","short_name":"North Bank","description":"Every Arsenal men's article from Arseblog, the Guardian, the Telegraph, The Athletic and BBC Sport.","start_url":"./index.html","scope":"./","display":"standalone","orientation":"any","background_color":"#052962","theme_color":"#052962",
+"icons":[{"src":"icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},{"src":"icons/maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}

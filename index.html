@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="North Bank">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<title>North Bank</title>
+<meta name="description" content="Every Arsenal men's article from Arseblog, the Guardian, the Telegraph, The Athletic and BBC Sport, in one place.">
+<meta name="theme-color" content="#052962">
+<style>
+@font-face{font-family:"Source Serif 4";font-weight:400;font-display:swap;src:url(fonts/source-serif-4-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Source Serif 4";font-weight:400;font-style:italic;font-display:swap;src:url(fonts/source-serif-4-latin-400-italic.woff2) format("woff2")}
+@font-face{font-family:"Source Serif 4";font-weight:600;font-display:swap;src:url(fonts/source-serif-4-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Source Serif 4";font-weight:700;font-display:swap;src:url(fonts/source-serif-4-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Source Sans 3";font-weight:400;font-display:swap;src:url(fonts/source-sans-3-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Source Sans 3";font-weight:600;font-display:swap;src:url(fonts/source-sans-3-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Source Sans 3";font-weight:700;font-display:swap;src:url(fonts/source-sans-3-latin-700-normal.woff2) format("woff2")}
+
+/* Newspaper front page: navy masthead, source tabs, ruled story rows grouped by day. Each source owns a section colour. */
+:root{
+  --brand:#052962;--brand-deep:#041F4A;--brand-line:#506991;--on-brand:#FFFFFF;--on-brand-soft:#C1D8FC;--flag:#FFE500;
+  --bg:#FFFFFF;--wash:#F6F6F6;--ink:#121212;--soft:#545454;--faint:#707070;--rule:#DCDCDC;--rule-strong:#121212;--read:#707070;
+  --arseblog:#C70000;--guardian:#0077B6;--telegraph:#866D50;--athletic:#C74600;--bbc:#BB3B80;
+  --quote:#C70000;--focus:#0077B6;
+  --head:"Source Serif 4",Georgia,"Times New Roman",serif;--text:"Source Serif 4",Georgia,serif;--ui:"Source Sans 3",-apple-system,"Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --brand:#041F4A;--brand-deep:#03173A;--brand-line:#3C5580;--wash:#242424;
+  --bg:#181818;--ink:#E8E8E8;--soft:#B5B5B5;--faint:#979797;--rule:#3F3F3F;--rule-strong:#8A8A8A;--read:#979797;
+  --arseblog:#FF6B5C;--guardian:#4FC3F7;--telegraph:#CDB592;--athletic:#FF9A55;--bbc:#F58CC4;--quote:#FF6B5C;--focus:#4FC3F7;
+  color-scheme:dark;
+}}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.45 var(--ui);overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--brand)}
+h1,h2,h3,p,ul,figure,blockquote{margin:0;padding:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+[hidden]{display:none!important}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:980px;margin-inline:auto}
+
+/* Masthead */
+.mast{background:var(--brand);color:var(--on-brand);padding-top:calc(env(safe-area-inset-top,0px) + 10px)}
+.mast-in{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-bottom:10px}
+.mast-left{display:grid;gap:8px;min-width:0}
+.today{font-size:.82rem;line-height:1.2;color:var(--on-brand-soft);white-space:nowrap}
+.refresh{justify-self:start;background:var(--flag);color:#052962;font-weight:700;font-size:.88rem;line-height:1;padding:8px 13px;border-radius:99px;display:inline-flex;align-items:center;gap:6px;min-height:34px}
+.refresh svg{width:14px;height:14px}
+.refresh.spin svg{animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.logo{font:700 clamp(2.4rem,11.6vw,4.2rem)/.86 var(--head);letter-spacing:-.035em;text-align:right;white-space:nowrap}
+.logo small{display:block;font:600 .8rem/1.1 var(--ui);letter-spacing:0;color:var(--on-brand-soft);margin-top:7px}
+
+/* Source tabs */
+.tabs-band{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--brand);border-top:1px solid var(--brand-line);border-bottom:1px solid var(--brand-line)}
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{--c:var(--flag);flex:none;position:relative;font:700 1.08rem/1 var(--head);color:var(--on-brand);padding:13px 13px 12px;border-right:1px solid var(--brand-line);white-space:nowrap;letter-spacing:-.01em}
+.tab:first-child{padding-left:0}
+.tab::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:4px;background:var(--c);transform:scaleY(0);transform-origin:bottom;transition:transform .12s}
+.tab[aria-selected=true]::after{transform:scaleY(1)}
+@media (prefers-color-scheme:dark){.tab[data-s=arseblog],.tab[data-s=guardian],.tab[data-s=telegraph],.tab[data-s=athletic],.tab[data-s=bbc]{--c:var(--flag)}}
+
+/* Status strip */
+.strip{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:9px;font-size:.84rem;color:var(--soft);border-bottom:1px solid var(--rule)}
+.switch{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--ink);white-space:nowrap;min-height:30px}
+.switch i{width:30px;height:18px;border-radius:9px;background:var(--rule);position:relative;transition:background .12s}
+.switch i::after{content:"";position:absolute;width:14px;height:14px;left:2px;top:2px;border-radius:50%;background:#fff;transition:transform .12s}
+.switch[aria-pressed=true] i{background:var(--guardian)}
+.switch[aria-pressed=true] i::after{transform:translateX(12px)}
+.notice{font-size:.84rem;color:var(--soft);padding-block:8px;border-bottom:1px solid var(--rule);background:var(--wash)}
+
+/* Day sections */
+.day{display:grid;grid-template-columns:minmax(0,1fr);border-top:1px solid var(--rule-strong);margin-top:22px;padding-top:6px}
+.day:first-child{margin-top:12px}
+.day h2{font:700 1.5rem/1.15 var(--head);letter-spacing:-.015em;margin-bottom:10px}
+.day h2 small{font:400 .85rem/1 var(--ui);letter-spacing:0;color:var(--faint);margin-left:7px}
+.stories{display:grid;grid-template-columns:minmax(0,1fr)}
+
+/* Story rows */
+.story{display:block;width:100%;text-align:left;border-top:1px solid var(--rule);padding:9px 0 12px;--c:var(--ink)}
+.story[data-s=arseblog]{--c:var(--arseblog)}.story[data-s=guardian]{--c:var(--guardian)}.story[data-s=telegraph]{--c:var(--telegraph)}.story[data-s=athletic]{--c:var(--athletic)}.story[data-s=bbc]{--c:var(--bbc)}
+.story-grid{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:12px}
+.story.noimg .story-grid{grid-template-columns:minmax(0,1fr)}
+.kick{display:block;font:700 .84rem/1.2 var(--ui);color:var(--c);margin-bottom:3px}
+.h{font:600 1.17rem/1.17 var(--head);letter-spacing:-.012em;text-wrap:pretty;overflow-wrap:anywhere}
+.thumb{width:112px;aspect-ratio:5/3;object-fit:cover;display:block;background:var(--wash)}
+.meta{display:flex;align-items:center;flex-wrap:wrap;gap:3px 12px;margin-top:8px;font-size:.78rem;color:var(--faint);font-variant-numeric:tabular-nums}
+.meta span{display:inline-flex;align-items:center;gap:4px}
+.meta svg{width:12px;height:12px;flex:none}
+.tagline{border:1px solid var(--rule);border-radius:2px;padding:0 5px;line-height:1.45}
+.story.read .h{color:var(--read);font-weight:400}
+.story.read .kick{opacity:.72}
+.story.lead{padding-top:10px}
+.story.lead .story-grid{grid-template-columns:minmax(0,1fr)}
+.story.lead .thumb{width:100%;grid-row:1;aspect-ratio:5/3}
+.story.lead .h{font-size:1.72rem;line-height:1.08;font-weight:700;letter-spacing:-.022em}
+.story.lead.read .h{font-weight:600}
+.trail{display:none;font:400 .98rem/1.32 var(--text);color:var(--soft);margin-top:7px}
+.story.lead .trail{display:block}
+
+.empty{padding:44px 0;text-align:center;color:var(--soft);display:grid;gap:12px;justify-items:center}
+.empty h2{font:700 1.45rem/1.15 var(--head);color:var(--ink)}
+.foot{padding-block:28px calc(env(safe-area-inset-bottom,0px) + 24px);font-size:.8rem;color:var(--faint);text-align:center}
+
+/* Reader */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--brand);color:var(--on-brand)}
+.topsafe{height:env(safe-area-inset-top,0px);background:var(--brand)}
+.bar-in{display:flex;justify-content:space-between;align-items:center;min-height:48px;gap:10px}
+.bar a,.bar button{display:inline-flex;align-items:center;gap:5px;font-weight:600;font-size:.95rem;min-height:44px;text-decoration:none}
+.bar svg{width:17px;height:17px}
+.article{--c:var(--ink);max-width:680px;margin-inline:auto;padding-block:12px 22px}
+.article[data-s=arseblog]{--c:var(--arseblog)}.article[data-s=guardian]{--c:var(--guardian)}.article[data-s=telegraph]{--c:var(--telegraph)}.article[data-s=athletic]{--c:var(--athletic)}.article[data-s=bbc]{--c:var(--bbc)}
+.article .kick{font-size:.95rem;margin-bottom:6px}
+.article h1{font:700 clamp(1.8rem,8vw,2.5rem)/1.07 var(--head);letter-spacing:-.024em;text-wrap:pretty;overflow-wrap:anywhere}
+.stand{font:400 1.08rem/1.32 var(--text);margin-top:12px}
+.byline{margin-top:13px;padding-top:7px;border-top:1px solid var(--rule);font-size:.84rem;color:var(--soft);display:flex;flex-wrap:wrap;justify-content:space-between;gap:3px 14px}
+.byline b{color:var(--c);font-weight:700}
+.jump{font-weight:700;color:var(--ink);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--rule)}
+.hero{display:block;width:100%;margin-top:12px;background:var(--wash)}
+.body{margin-top:16px;display:grid;gap:15px;font:400 1.06rem/1.5 var(--text)}
+.body h3{font:700 1.27rem/1.2 var(--head);letter-spacing:-.012em;margin-top:6px}
+.body blockquote{font:600 1.2rem/1.28 var(--head);border-left:0;padding-top:7px;border-top:3px solid var(--c)}
+.body li{list-style:none;padding-left:16px;position:relative}
+.body li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:8px;border-radius:50%;background:var(--rule)}
+.body img{display:block;width:100%;height:auto}
+.outcard{margin-top:18px;background:var(--wash);padding:14px;display:grid;gap:11px;justify-items:start;font-size:.95rem;color:var(--soft)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:9px 16px;border-radius:99px;font-weight:700;font-size:.95rem;text-decoration:none;background:var(--brand);color:#fff;border:1px solid var(--brand)}
+.btn svg{width:15px;height:15px}
+.btn.ghost{background:none;color:var(--ink);border-color:var(--rule-strong)}
+.origin{margin-top:22px}
+
+/* Comments */
+.comments{max-width:680px;margin-inline:auto;padding-block:2px calc(env(safe-area-inset-bottom,0px) + 30px)}
+.c-head{border-top:1px solid var(--rule-strong);padding-top:6px;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.c-head h2{font:700 1.5rem/1.15 var(--head);letter-spacing:-.015em}
+.c-head span{font-size:.88rem;color:var(--faint);font-variant-numeric:tabular-nums}
+.sorts{display:flex;gap:6px;margin:10px 0 2px}
+.sort{font-weight:600;font-size:.86rem;padding:6px 12px;border:1px solid var(--rule);border-radius:99px;min-height:34px}
+.sort[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.c-list{display:grid}
+.c{border-top:1px solid var(--rule);padding:11px 0 12px}
+.c-top{display:flex;align-items:center;gap:8px;min-width:0}
+.ava{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;font:700 .86rem/1 var(--head);background:var(--wash);color:var(--soft)}
+.c-name{font-weight:700;font-size:.93rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-time{font-size:.77rem;color:var(--faint);white-space:nowrap;font-variant-numeric:tabular-nums}
+.c-votes{margin-left:auto;font-size:.8rem;font-weight:600;color:var(--soft);display:inline-flex;align-items:center;gap:3px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.c-votes svg{width:11px;height:11px}
+.c-body{display:grid;gap:8px;margin-top:7px;font:400 .98rem/1.42 var(--text);white-space:pre-line;overflow-wrap:anywhere}
+.c-body blockquote{font-style:italic;color:var(--soft);padding-left:10px;border-left:2px solid var(--rule)}
+.c-replies{margin-top:9px;padding-left:11px;border-left:2px solid var(--rule)}
+.c-replies .c:first-child{border-top:0;padding-top:2px}
+.c-replies .c:last-child{padding-bottom:0}
+.c-replies .ava{width:24px;height:24px;font-size:.74rem}
+.c-more{font-size:.82rem;color:var(--faint);padding-top:8px}
+.more{width:100%;margin-top:12px}
+.note{padding:12px 0;color:var(--soft);font-size:.95rem;border-top:1px solid var(--rule);margin-top:9px}
+.note a{font-weight:600}
+
+/* Passcode */
+.gate{min-height:100dvh;background:var(--brand);color:#fff;display:grid;align-content:center;gap:14px;padding-block:24px}
+.gate h1{font:700 3rem/.9 var(--head);letter-spacing:-.035em}
+.gate p{color:var(--on-brand-soft);max-width:34ch}
+.gate form{display:flex;gap:8px;max-width:360px}
+.gate input{flex:1;min-width:0;min-height:46px;border:0;border-radius:4px;padding:8px 12px;font:600 16px var(--ui);background:#fff;color:#121212}
+.gate button{min-height:46px;padding:0 17px;border-radius:99px;font-weight:700;background:var(--flag);color:#052962}
+.gate .err{color:var(--flag);font-weight:600;font-size:.92rem}
+
+@media (min-width:760px){
+  .stories{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:20px}
+  .story.lead{grid-column:span 2;grid-row:span 3}
+  .story-grid{grid-template-columns:minmax(0,1fr)}
+  .story:not(.lead) .thumb{display:none}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<noscript><p style="padding:2rem">North Bank needs JavaScript to run.</p></noscript>
+<script>
+const SOURCES={
+  arseblog:{name:'Arseblog',short:'Arseblog'},
+  guardian:{name:'The Guardian',short:'Guardian'},
+  telegraph:{name:'The Telegraph',short:'Telegraph',subs:true},
+  athletic:{name:'The Athletic',short:'The Athletic',subs:true},
+  bbc:{name:'BBC Sport',short:'BBC'}
+};
+const ICON={
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 4h18v13H10l-5 4v-4H3z"/></svg>',
+  out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M8 5h11v11M19 5 6 18"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 4l9 15H3z"/></svg>',
+  sync:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-4.5L3 9m0-5v5h5M4 13a8 8 0 0 0 14 4.5l3-2.5m0 5v-5h-5"/></svg>'
+};
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
+const app=$('#app');
+const S={feed:null,filter:store.get('nb-filter')||'all',unread:store.get('nb-unread')==='1',read:new Set(),key:null,loading:false,error:null,scroll:0,open:null,lastCheck:0};
+try{S.read=new Set(JSON.parse(store.get('nb-read')||'[]'))}catch{}
+
+/* ---------- Decryption ---------- */
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const toB64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
+async function fromPasscode(pass){
+  const r=await fetch('data/key.json?t='+Date.now(),{cache:'no-store'});
+  if(!r.ok) throw new Error('nodata');
+  const k=await r.json();
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(k.salt),iterations:k.iterations,hash:'SHA-256'},base,{name:'AES-GCM',length:256},true,['decrypt']);
+  await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(12)},key,b64(k.check));
+  return key;
+}
+async function unseal(buf){
+  const u=new Uint8Array(buf);
+  const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:u.slice(0,12)},S.key,u.slice(12));
+  const stream=new Blob([plain]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return JSON.parse(await new Response(stream).text());
+}
+async function fetchSealed(path,fresh){
+  const r=await fetch(path+(fresh?'?t='+Date.now():''),fresh?{cache:'no-store'}:{});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return unseal(await r.arrayBuffer());
+}
+
+/* ---------- Formatting ---------- */
+const NOW=()=>Date.now();
+function ago(iso){
+  const t=new Date(iso).getTime(); if(!t) return '';
+  const m=Math.max(0,Math.round((NOW()-t)/6e4));
+  if(m<1) return 'now'; if(m<60) return m+'m'; const h=Math.round(m/60); if(h<24) return h+'h';
+  return Math.round(h/24)+'d';
+}
+function agoLong(iso){
+  const m=Math.max(0,Math.round((NOW()-new Date(iso).getTime())/6e4));
+  if(m<1) return 'just now'; if(m<60) return m+' min ago'; const h=Math.round(m/60); if(h<24) return h+(h===1?' hour ago':' hours ago');
+  return Math.round(h/24)+' days ago';
+}
+const dayKey=d=>d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
+function dayName(iso){
+  const d=new Date(iso); const today=new Date(); const y=new Date(); y.setDate(y.getDate()-1);
+  if(dayKey(d)===dayKey(today)) return ['Today',d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})];
+  if(dayKey(d)===dayKey(y)) return ['Yesterday',d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})];
+  return [d.toLocaleDateString('en-GB',{weekday:'long'}),d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})];
+}
+function stamp(iso){
+  const d=new Date(iso); if(isNaN(d)) return '';
+  const p=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  return p.replace(',','')+' '+String(d.getHours()).padStart(2,'0')+'.'+String(d.getMinutes()).padStart(2,'0');
+}
+const inList=()=>{
+  const all=S.feed?.items||[];
+  return all.filter(i=>(S.filter==='all'||i.source===S.filter)&&(!S.unread||!S.read.has(i.id)));
+};
+
+/* ---------- Front page ---------- */
+function storyHTML(i,lead){
+  const src=SOURCES[i.source]||{name:i.source};
+  const c=i.comments!=null&&i.comments>0?`<span aria-label="${i.comments} comments">${ICON.chat}${i.comments.toLocaleString('en-GB')}</span>`:'';
+  const label=!i.hasText&&src.subs?'<span class="tagline">Opens on site</span>':'';
+  const img=i.image?`<img class="thumb" src="${esc(i.image)}" alt="" loading="lazy" onerror="this.closest('.story').classList.add('noimg');this.remove()">`:'';
+  return `<button class="story${lead?' lead':''}${i.image?'':' noimg'}${S.read.has(i.id)?' read':''}" data-s="${esc(i.source)}" data-open="${esc(i.id)}">
+    <span class="story-grid"><span style="min-width:0">${lead?'':''}<span class="kick">${esc(src.name)}</span><span class="h">${esc(i.title)}</span>${lead&&i.trail?`<span class="trail">${esc(i.trail)}</span>`:''}</span>${img}</span>
+    <span class="meta"><span>${ICON.clock}${esc(ago(i.date))}</span>${c}${label}</span></button>`;
+}
+function renderFront(){
+  document.title='North Bank';
+  const now=new Date();
+  const list=inList();
+  const groups=[];
+  for(const i of list){ const k=dayKey(new Date(i.date||0)); let g=groups[groups.length-1]; if(!g||g.k!==k){g={k,date:i.date,items:[]};groups.push(g);} g.items.push(i); }
+  const failed=Object.entries(S.feed?.statuses||{}).filter(([,s])=>!s.ok).map(([k])=>SOURCES[k]?.name||k);
+  const tabs=[['all','All'],...Object.entries(SOURCES).map(([k,v])=>[k,v.short])];
+  let body;
+  if(!S.feed&&S.error) body=`<div class="empty"><h2>Couldn't load the articles</h2><p>${esc(S.error)}</p><button class="btn" data-act="refresh">Try again</button></div>`;
+  else if(!S.feed) body=`<div class="empty"><p>Loading the latest Arsenal articles…</p></div>`;
+  else if(!list.length) body=`<div class="empty"><h2>${S.unread?'All caught up':'No articles here yet'}</h2><p>${S.unread?'You have read everything in this view.':'The next update runs within about 20 minutes.'}</p>${S.unread?'<button class="btn ghost" data-act="toggle-unread">Show read articles</button>':''}</div>`;
+  else body=groups.map((g,gi)=>{ const [n,d]=g.date?dayName(g.date):['Undated',''];
+    return `<section class="day"><h2>${esc(n)}<small>${esc(d)}</small></h2><div class="stories">${g.items.map((it,ii)=>storyHTML(it,gi===0&&ii===0&&it.image)).join('')}</div></section>`;}).join('');
+  const unreadN=(S.feed?.items||[]).filter(i=>(S.filter==='all'||i.source===S.filter)&&!S.read.has(i.id)).length;
+  app.innerHTML=`
+  <header class="mast"><div class="wrap gut mast-in">
+    <div class="mast-left"><div class="today">${esc(now.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}).replace(',',''))}</div>
+      <button class="refresh${S.loading?' spin':''}" data-act="refresh" aria-label="Check for new articles">${ICON.sync}Refresh</button></div>
+    <div class="logo">North Bank<small>Arsenal men, every paper</small></div>
+  </div></header>
+  <nav class="tabs-band" aria-label="Sources"><div class="wrap gut tabs" role="tablist">${tabs.map(([k,n])=>`<button class="tab" role="tab" data-s="${k}" data-filter="${k}" aria-selected="${S.filter===k}">${esc(n)}</button>`).join('')}</div></nav>
+  ${failed.length?`<div class="notice"><div class="wrap gut">${esc(failed.join(', '))} couldn't be reached at the last update. Older stories stay listed.</div></div>`:''}
+  <div class="wrap gut">
+    <div class="strip"><span>${S.feed?`Updated ${esc(agoLong(S.feed.updated))} · ${unreadN} unread`:''}</span>
+      <button class="switch" data-act="toggle-unread" aria-pressed="${S.unread}"><i></i>Unread only</button></div>
+    <main>${body}</main>
+    <div class="foot">Articles and comments belong to their publishers. Tap Original on any story to read it at the source.</div>
+  </div>`;
+  const active=$('.tab[aria-selected=true]'); if(active) active.scrollIntoView({block:'nearest',inline:'nearest'});
+}
+
+/* ---------- Reader ---------- */
+function blockHTML(b){
+  if(b.t==='h') return `<h3>${esc(b.text)}</h3>`;
+  if(b.t==='q') return `<blockquote>${esc(b.text)}</blockquote>`;
+  if(b.t==='li') return `<li>${esc(b.text)}</li>`;
+  if(b.t==='img') return `<img src="${esc(b.src)}" alt="${esc(b.alt||'')}" loading="lazy" onerror="this.remove()">`;
+  return `<p>${esc(b.text)}</p>`;
+}
+function renderReader(i){
+  const src=SOURCES[i.source]||{name:i.source};
+  document.title=i.title+' | North Bank';
+  app.innerHTML=`
+  <div class="bar"><div class="wrap gut bar-in">
+    <button data-act="back" aria-label="Back to all articles">${ICON.back}North Bank</button>
+    <a href="${esc(i.url)}" target="_blank" rel="noopener">Original ${ICON.out}</a>
+  </div></div>
+  <article class="article gut" data-s="${esc(i.source)}">
+    <span class="kick">${esc(src.name)}</span>
+    <h1>${esc(i.title)}</h1>
+    ${i.trail?`<p class="stand">${esc(i.trail)}</p>`:''}
+    <div class="byline"><span>${i.byline?`<b>${esc(i.byline)}</b><br>`:''}${esc(stamp(i.date))}</span><a class="jump" href="#comments" data-act="jump" id="jump-link" hidden></a></div>
+    ${i.image?`<img class="hero" src="${esc(i.image)}" alt="" onerror="this.remove()">`:''}
+    <div id="r-body"><p class="note" style="border:0">Loading…</p></div>
+  </article>
+  <section class="comments gut" id="comments"></section>`;
+  window.scrollTo(0,0);
+  loadPage(i);
+}
+async function loadPage(i){
+  const src=SOURCES[i.source]||{};
+  let page=null, failed=false;
+  try{ page=await fetchSealed(`data/a/${i.id}.bin`,false); }catch(e){ failed=true; }
+  if(S.open!==i.id) return;
+  const bodyEl=$('#r-body');
+  const textBlocks=(page?.blocks||[]).filter(b=>b.t!=='img');
+  if(textBlocks.length>=2){
+    let blocks=page.blocks;
+    if(i.image&&blocks[0]?.t==='img') blocks=blocks.slice(1);
+    bodyEl.innerHTML=`<div class="body">${blocks.map(blockHTML).join('')}</div><a class="btn ghost origin" href="${esc(i.url)}" target="_blank" rel="noopener">Read on ${esc(src.name)} ${ICON.out}</a>`;
+  } else {
+    const why=src.subs?`${src.name} keeps its full article for subscribers. Open it on their site to read it, signed in if you subscribe.`
+      : failed?'This article isn\'t saved on this phone yet and needs a connection.':`The article text couldn't be saved this time. It's still on ${src.name}.`;
+    bodyEl.innerHTML=`<div class="outcard"><span>${esc(why)}</span><a class="btn" href="${esc(i.url)}" target="_blank" rel="noopener">Read on ${esc(src.name)} ${ICON.out}</a></div>`;
+  }
+  renderComments(i,page);
+}
+const countAll=l=>l.reduce((n,c)=>n+1+countAll(c.replies||[])+(c.more||0),0);
+const C={sort:'newest',shown:40};
+function commentHTML(c,depth=0){
+  const name=c.author||'Reader';
+  const when=c.date?ago(c.date):(c.dateText||'');
+  const replies=c.replies||[];
+  return `<div class="c"><div class="c-top"><span class="ava" aria-hidden="true">${esc(name.trim()[0]?.toUpperCase()||'?')}</span><span class="c-name">${esc(name)}</span><span class="c-time">${esc(when)}</span>${c.votes?`<span class="c-votes" aria-label="${c.votes} recommends">${ICON.up}${c.votes}</span>`:''}</div>
+    <div class="c-body">${(c.blocks||[]).map(b=>b.t==='q'?`<blockquote>${esc(b.text)}</blockquote>`:`<p>${esc(b.text)}</p>`).join('')}</div>
+    ${replies.length||c.more?`<div class="c-replies">${replies.map(r=>commentHTML(r,depth+1)).join('')}${c.more?`<div class="c-more">${c.more} more ${c.more===1?'reply':'replies'} at the source</div>`:''}</div>`:''}</div>`;
+}
+function sorted(list){
+  const by=C.sort==='oldest'?(a,b)=>(a.date||'').localeCompare(b.date||''):C.sort==='top'?(a,b)=>(b.votes||0)-(a.votes||0)||(b.date||'').localeCompare(a.date||''):(a,b)=>(b.date||'').localeCompare(a.date||'');
+  return [...list].sort(by);
+}
+function renderComments(i,page){
+  const el=$('#comments'), src=SOURCES[i.source]||{}, jump=$('#jump-link');
+  const list=page?.comments||[], total=page?.commentTotal||i.comments||0, state=page?.commentState;
+  if(!el) return;
+  if(list.length){
+    C.shown=40; C.sort='newest';
+    const hasVotes=list.some(c=>c.votes);
+    const draw=()=>{
+      const s=sorted(list);
+      el.innerHTML=`<div class="c-head"><h2>Comments</h2><span>${total.toLocaleString('en-GB')}</span></div>
+      <div class="sorts" role="group" aria-label="Sort comments">${[['newest','Newest'],['oldest','Oldest'],...(hasVotes?[['top','Top']]:[])].map(([k,n])=>`<button class="sort" data-sort="${k}" aria-pressed="${C.sort===k}">${n}</button>`).join('')}</div>
+      <div class="c-list">${s.slice(0,C.shown).map(c=>commentHTML(c)).join('')}</div>
+      ${s.length>C.shown?`<button class="btn ghost more" data-act="more-comments">Show more comments (${s.length-C.shown} threads left)</button>`:''}
+      ${total>countAll(list)?`<p class="note">Showing the latest saved comments. <a href="${esc(i.url)}" target="_blank" rel="noopener">See all ${total.toLocaleString('en-GB')} at the source</a>.</p>`:''}`;
+    };
+    C.draw=draw; draw();
+    jump.hidden=false; jump.textContent=total.toLocaleString('en-GB')+(total===1?' comment':' comments');
+    return;
+  }
+  C.draw=null;
+  const link=`<a href="${esc(i.url)}" target="_blank" rel="noopener">`;
+  let msg;
+  if(src.subs) msg=`Comments on ${esc(src.name)} are on their site. ${link}Open comments</a>`;
+  else if(i.source==='bbc') msg=`BBC Sport doesn't usually open comments on football stories. ${link}Check the original</a>`;
+  else if(state==='closed') msg='Comments aren\'t open on this article.';
+  else if(state==='unavailable') msg=`Comments couldn't be collected at the last update. ${link}Read them at the source</a>`;
+  else msg='No comments yet.';
+  el.innerHTML=`<div class="c-head"><h2>Comments</h2></div><p class="note" style="border:0;margin:0">${msg}</p>`;
+}
+
+/* ---------- Passcode screen ---------- */
+function renderGate(err){
+  app.innerHTML=`<div class="gate gut"><h1>North Bank</h1><p>Enter the passcode you chose for this reader. You only need to do this once on this phone.</p>
+  <form id="gate-form"><input id="gate-pass" type="password" autocomplete="current-password" aria-label="Passcode" placeholder="Passcode" autofocus><button type="submit">Open</button></form>
+  ${err?`<p class="err" role="alert">${esc(err)}</p>`:''}</div>`;
+}
+
+/* ---------- Data ---------- */
+async function refresh(){
+  if(S.loading) return;
+  S.loading=true; S.error=null; S.lastCheck=NOW();
+  if(!S.open) renderFront();
+  try{
+    S.feed=await fetchSealed('data/feed.bin',true);
+    pruneRead();
+  }catch(e){
+    if(e.name==='OperationError'){ store.set('nb-key',''); S.key=null; S.loading=false; renderGate('The passcode has changed. Enter the new one.'); return; }
+    S.error=navigator.onLine===false?'You appear to be offline. Connect and try again.':'The article list isn\'t available yet. The first update may still be running.';
+  }
+  S.loading=false;
+  if(!S.open) renderFront();
+}
+function pruneRead(){
+  const ids=new Set(S.feed.items.map(i=>i.id));
+  const kept=[...S.read].filter(id=>ids.has(id)).slice(-800);
+  S.read=new Set(kept); saveRead();
+}
+const saveRead=()=>store.set('nb-read',JSON.stringify([...S.read]));
+function route(){
+  const m=/^#a-([0-9a-f]+)$/.exec(location.hash);
+  const item=m&&S.feed?.items.find(i=>i.id===m[1]);
+  if(item){
+    if(!S.open) S.scroll=window.scrollY;
+    S.open=item.id;
+    if(!S.read.has(item.id)){S.read.add(item.id);saveRead();}
+    renderReader(item);
+  } else {
+    S.open=null; renderFront(); window.scrollTo(0,S.scroll);
+  }
+}
+
+/* ---------- Events ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-open],[data-filter],[data-act],[data-sort]');
+  if(!t) return;
+  if(t.dataset.open){ location.hash='a-'+t.dataset.open; return; }
+  if(t.dataset.filter){ S.filter=t.dataset.filter; store.set('nb-filter',S.filter); S.scroll=0; renderFront(); window.scrollTo(0,0); return; }
+  if(t.dataset.sort){ C.sort=t.dataset.sort; C.shown=40; C.draw&&C.draw(); return; }
+  const a=t.dataset.act;
+  if(a==='refresh') refresh();
+  else if(a==='toggle-unread'){ S.unread=!S.unread; store.set('nb-unread',S.unread?'1':'0'); renderFront(); }
+  else if(a==='back'){ if(history.length>1&&S.fromFront) history.back(); else location.hash=''; }
+  else if(a==='jump'){ e.preventDefault(); $('#comments').scrollIntoView({behavior:'smooth'}); }
+  else if(a==='more-comments'){ C.shown+=40; C.draw&&C.draw(); }
+});
+document.addEventListener('submit',async e=>{
+  if(e.target.id!=='gate-form') return;
+  e.preventDefault();
+  const pass=$('#gate-pass').value; if(!pass) return;
+  try{
+    S.key=await fromPasscode(pass);
+    store.set('nb-key',toB64(await crypto.subtle.exportKey('raw',S.key)));
+    start();
+  }catch(err){
+    renderGate(err.message==='nodata'?'The first article update hasn\'t finished yet. Try again in a few minutes.':'That passcode didn\'t work. Check it and try again.');
+  }
+});
+window.addEventListener('hashchange',()=>{ S.fromFront=true; route(); });
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&S.key&&!S.open&&NOW()-S.lastCheck>3e5) refresh(); });
+
+async function start(){
+  S.loading=true; S.open=null; renderFront(); S.loading=false;
+  await refresh();
+  route();
+}
+(async()=>{
+  const saved=store.get('nb-key');
+  if(saved){ try{ S.key=await crypto.subtle.importKey('raw',b64(saved),'AES-GCM',true,['decrypt']); }catch{} }
+  if(S.key) start(); else renderGate();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>
