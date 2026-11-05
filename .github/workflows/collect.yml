@@ -29,11 +29,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Probe
-        continue-on-error: true
-        env:
-          READER_PASSCODE: probe
-        run: node collector/probe.mjs
       - name: Collect
         env:
           READER_PASSCODE: ${{ secrets.READER_PASSCODE }}
