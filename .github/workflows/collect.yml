@@ -29,6 +29,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Probe
+        continue-on-error: true
+        env:
+          GUARDIAN_KEY: ${{ secrets.GUARDIAN_KEY }}
+        run: node collector/probe.mjs
       - name: Collect
         env:
           READER_PASSCODE: ${{ secrets.READER_PASSCODE }}
